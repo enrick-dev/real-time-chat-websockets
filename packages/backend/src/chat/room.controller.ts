@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   Request,
+  Logger,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';
@@ -14,29 +15,38 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('rooms')
 @UseGuards(JwtAuthGuard)
 export class RoomController {
-  constructor(private roomService: RoomService) {}
+  private readonly logger = new Logger(RoomController.name);
+
+  constructor(private readonly roomService: RoomService) {}
 
   @Post()
   async createRoom(@Body() createRoomDto: CreateRoomDto, @Request() req) {
-    console.log('Creating room:', createRoomDto);
+    this.logger.log(`Creating room: ${JSON.stringify(createRoomDto)}`, 'RoomController.createRoom');
+    this.logger.debug(`User creating room: ${req.user.email}`, 'RoomController.createRoom');
+
     const room = await this.roomService.createRoom(createRoomDto);
-    console.log('Room created:', room);
+    
+    this.logger.log(`Room created: ${JSON.stringify(room)}`, 'RoomController.createRoom');
     return room;
   }
 
   @Get()
   async getAllRooms() {
-    console.log('Getting all rooms');
+    this.logger.log('Getting all rooms', 'RoomController.getAllRooms');
+
     const rooms = await this.roomService.getAllRooms();
-    console.log('Rooms found:', rooms.length);
+    
+    this.logger.log(`Rooms found: ${rooms.length}`, 'RoomController.getAllRooms');
     return rooms;
   }
 
   @Get(':slug')
   async getRoomBySlug(@Param('slug') slug: string) {
-    console.log('Getting room by slug:', slug);
+    this.logger.log(`Getting room by slug: ${slug}`, 'RoomController.getRoomBySlug');
+
     const room = await this.roomService.getRoomBySlug(slug);
-    console.log('Room found:', room);
+    
+    this.logger.log(`Room found: ${JSON.stringify(room)}`, 'RoomController.getRoomBySlug');
     return room;
   }
 }

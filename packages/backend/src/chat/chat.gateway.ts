@@ -8,41 +8,44 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { UseGuards } from '@nestjs/common';
-import { WsJwtGuard } from './guards/ws-jwt.guard';
+import { Logger, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { RoomService } from './room.service';
+import { WsJwtGuard } from './guards/ws-jwt.guard';
 
 @WebSocketGateway({
   namespace: '/chat',
   cors: {
-    origin: '*',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
   },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private readonly logger = new Logger(ChatGateway.name);
+
   constructor(
-    private chatService: ChatService,
-    private roomService: RoomService,
+    private readonly chatService: ChatService,
+    private readonly roomService: RoomService,
   ) {}
 
-  async handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+  handleConnection(client: Socket) {
+    this.logger.log(`Client connected: ${client.id}`, 'ChatGateway.handleConnection');
+    this.logger.debug(`Client handshake: ${JSON.stringify(client.handshake)}`, 'ChatGateway.handleConnection');
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
-
-    const user = client.data.user;
     const roomId = client.data.roomId;
-
-    if (user && roomId) {
-      client.to(roomId).emit('user:left', {
-        userId: user.id,
-        userName: user.name,
-        message: `${user.name} left the chat`,
+    this.logger.log(`Client disconnected: ${client.id}`, 'ChatGateway.handleDisconnect');
+    
+    if (roomId) {
+      this.logger.log(`Client left room: ${roomId}`, 'ChatGateway.handleDisconnect');
+      this.server.to(roomId).emit('user:left', {
+        userId: client.handshake.auth.user?.id,
+        userName: client.handshake.auth.user?.name,
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -53,39 +56,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { roomSlug: string },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('Attempting to join room:', data.roomSlug);
-
     const user = client.handshake.auth.user;
-    if (!user) {
-      console.log('User not authenticated');
-      client.emit('error', 'User not authenticated');
-      return;
-    }
+    this.logger.log(`User ${user.email} attempting to join room: ${data.roomSlug}`, 'ChatGateway.handleJoinRoom');
 
     try {
       const room = await this.roomService.getRoomBySlug(data.roomSlug);
+      
+      if (!room) {
+        this.logger.warn(`Room not found: ${data.roomSlug}`, 'ChatGateway.handleJoinRoom');
+        client.emit('error', 'Room not found');
+        return;
+      }
 
-      await client.join(room.id);
-      client.data.user = user;
+      client.join(room.id);
       client.data.roomId = room.id;
+      
+      this.logger.log(`User ${user.email} joined room: ${room.name} (${room.id})`, 'ChatGateway.handleJoinRoom');
 
-      client.to(room.id).emit('user:joined', {
+      const messages = await this.chatService.getRecentMessages(room.id);
+      this.logger.debug(`Retrieved ${messages.length} messages for room: ${room.id}`, 'ChatGateway.handleJoinRoom');
+
+      this.server.to(room.id).emit('user:joined', {
         userId: user.id,
         userName: user.name,
-        message: `${user.name} joined the chat`,
+        timestamp: new Date().toISOString(),
       });
 
-      const messages = await this.chatService.getRecentMessages(room.id, 50);
-      console.log('Retrieved messages:', messages.length);
-
-      client.emit('room:join', {
-        room,
-        messages,
-      });
-      console.log('Emitted room:join event to client');
+      client.emit('room:join', { room, messages });
+      
+      this.logger.log(`Room join completed for user ${user.email} in room ${room.name}`, 'ChatGateway.handleJoinRoom');
     } catch (error) {
-      console.error('Error joining room:', error);
-      client.emit('error', 'Room not found');
+      this.logger.error(`Error joining room: ${error.message}`, error.stack, 'ChatGateway.handleJoinRoom');
+      client.emit('error', 'Failed to join room');
     }
   }
 
@@ -98,22 +100,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = client.handshake.auth.user;
     const roomId = client.data.roomId;
 
-    if (!user) {
-      return { error: 'User not authenticated' };
-    }
-
     if (!roomId) {
-      return { error: 'Not in a room' };
+      this.logger.warn(`User ${user.email} tried to send message without being in a room`, 'ChatGateway.handleMessage');
+      client.emit('error', 'You must join a room first');
+      return;
     }
 
-    const message = await this.chatService.createMessage({
-      text: data.text,
-      userId: user.id,
-      userName: user.name,
-      roomId: roomId,
-    });
+    this.logger.log(`User ${user.email} sending message in room: ${roomId}`, 'ChatGateway.handleMessage');
+    this.logger.debug(`Message content: ${data.text}`, 'ChatGateway.handleMessage');
 
-    this.server.to(roomId).emit('message:new', message);
-    return message;
+    try {
+      const message = await this.chatService.createMessage({
+        text: data.text,
+        userId: user.id,
+        userName: user.name,
+        roomId: roomId,
+      });
+
+      this.logger.log(`Message created successfully: ${message.id}`, 'ChatGateway.handleMessage');
+
+      this.server.to(roomId).emit('message:new', {
+        id: message.id,
+        text: message.text,
+        userId: message.userId,
+        userName: message.userName,
+        createdAt: message.createdAt,
+      });
+
+      this.logger.debug(`Message emitted to room: ${roomId}`, 'ChatGateway.handleMessage');
+    } catch (error) {
+      this.logger.error(`Error creating message: ${error.message}`, error.stack, 'ChatGateway.handleMessage');
+      client.emit('error', 'Failed to send message');
+    }
+  }
+
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('message:list')
+  async handleMessageList(@ConnectedSocket() client: Socket) {
+    const user = client.handshake.auth.user;
+    this.logger.debug(`User ${user.email} requested message list`, 'ChatGateway.handleMessageList');
+    
+    client.emit('message:list', []);
   }
 }

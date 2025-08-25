@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface CreateMessageDto {
@@ -10,9 +10,14 @@ export interface CreateMessageDto {
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async createMessage(createMessageDto: CreateMessageDto) {
+    this.logger.log(`Creating message for user: ${createMessageDto.userName}`, 'ChatService.createMessage');
+    this.logger.debug(`Message details: ${JSON.stringify(createMessageDto)}`, 'ChatService.createMessage');
+
     const message = await this.prisma.message.create({
       data: {
         text: createMessageDto.text,
@@ -30,10 +35,13 @@ export class ChatService {
       },
     });
 
+    this.logger.log(`Message created successfully: ${message.id}`, 'ChatService.createMessage');
     return message;
   }
 
   async getRecentMessages(roomId: string, limit: number = 50) {
+    this.logger.debug(`Getting recent messages for room: ${roomId}, limit: ${limit}`, 'ChatService.getRecentMessages');
+
     const messages = await this.prisma.message.findMany({
       where: {
         roomId: roomId,
@@ -52,6 +60,7 @@ export class ChatService {
       },
     });
 
+    this.logger.debug(`Retrieved ${messages.length} messages for room: ${roomId}`, 'ChatService.getRecentMessages');
     return messages.reverse();
   }
 }
