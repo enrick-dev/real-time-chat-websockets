@@ -45,7 +45,7 @@ export class RoomService {
 
     if (!room) {
       this.logger.warn(`Room not found with slug: ${slug}`, 'RoomService.getRoomBySlug');
-      throw new NotFoundException('Room not found');
+      throw new NotFoundException('Sala não encontrada');
     }
 
     this.logger.debug(`Room found: ${room.name} (ID: ${room.id})`, 'RoomService.getRoomBySlug');
@@ -72,7 +72,7 @@ export class RoomService {
 
     if (!room) {
       this.logger.warn(`Room not found with ID: ${id}`, 'RoomService.getRoomById');
-      throw new NotFoundException('Room not found');
+      throw new NotFoundException('Sala não encontrada');
     }
 
     this.logger.debug(`Room found: ${room.name} (ID: ${room.id})`, 'RoomService.getRoomById');

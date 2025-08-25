@@ -129,6 +129,9 @@ describe('RoomService', () => {
       await expect(service.getRoomBySlug(slug)).rejects.toThrow(
         NotFoundException,
       );
+      await expect(service.getRoomBySlug(slug)).rejects.toThrow(
+        'Sala não encontrada',
+      );
       expect(mockPrismaService.room.findUnique).toHaveBeenCalledWith({
         where: { slug },
       });
@@ -220,6 +223,9 @@ describe('RoomService', () => {
       // Act & Assert
       await expect(service.getRoomById(roomId)).rejects.toThrow(
         NotFoundException,
+      );
+      await expect(service.getRoomById(roomId)).rejects.toThrow(
+        'Sala não encontrada',
       );
       expect(mockPrismaService.room.findUnique).toHaveBeenCalledWith({
         where: { id: roomId },

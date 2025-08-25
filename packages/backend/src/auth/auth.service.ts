@@ -28,7 +28,7 @@ export class AuthService {
 
     if (existingUser) {
       this.logger.warn(`Registration failed: User already exists with email ${registerDto.email}`, 'AuthService.register');
-      throw new ConflictException('User already exists');
+      throw new ConflictException('Usuário já existe com este email');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
@@ -61,14 +61,14 @@ export class AuthService {
 
     if (!user) {
       this.logger.warn(`Login failed: User not found with email ${loginDto.email}`, 'AuthService.login');
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Usuário não encontrado');
     }
 
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
     
     if (!isPasswordValid) {
       this.logger.warn(`Login failed: Invalid password for user ${loginDto.email}`, 'AuthService.login');
-      throw new UnauthorizedException('Password is incorrect');
+      throw new UnauthorizedException('Senha incorreta');
     }
 
     const payload = { email: user.email, sub: user.id };

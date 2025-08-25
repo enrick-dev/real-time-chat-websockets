@@ -17,19 +17,19 @@ export class WsJwtGuard implements CanActivate {
       const token = this.extractTokenFromHeader(client);
 
       if (!token) {
-        throw new WsException('Unauthorized');
+        throw new WsException('Não autorizado');
       }
       const payload = this.jwtService.verify(token);
       const user = await this.authService.validateUser(payload.sub);
 
       if (!user) {
-        throw new WsException('Unauthorized');
+        throw new WsException('Não autorizado');
       }
 
       client.handshake.auth.user = user;
       return true;
     } catch (error) {
-      throw new WsException('Unauthorized');
+      throw new WsException('Não autorizado');
     }
   }
 

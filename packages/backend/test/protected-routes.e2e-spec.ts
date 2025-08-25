@@ -215,7 +215,10 @@ describe('Protected Routes (e2e)', () => {
       return request(app.getHttpServer())
         .get('/rooms/non-existent-room')
         .set('Authorization', `Bearer ${authToken}`)
-        .expect(404);
+        .expect(404)
+        .expect((res) => {
+          expect(res.body.message).toBe('Sala não encontrada');
+        });
     });
 
     it('should return 401 when not authenticated', () => {

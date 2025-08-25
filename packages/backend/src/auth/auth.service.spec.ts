@@ -100,6 +100,9 @@ describe('AuthService', () => {
       await expect(service.register(registerDto)).rejects.toThrow(
         ConflictException,
       );
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Usuário já existe com este email',
+      );
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: registerDto.email },
       });
@@ -155,6 +158,9 @@ describe('AuthService', () => {
       await expect(service.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
       );
+      await expect(service.login(loginDto)).rejects.toThrow(
+        'Usuário não encontrado',
+      );
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: loginDto.email },
       });
@@ -170,6 +176,9 @@ describe('AuthService', () => {
       // Act & Assert
       await expect(service.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow(
+        'Senha incorreta',
       );
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: loginDto.email },

@@ -64,7 +64,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       
       if (!room) {
         this.logger.warn(`Room not found: ${data.roomSlug}`, 'ChatGateway.handleJoinRoom');
-        client.emit('error', 'Room not found');
+        client.emit('error', 'Sala não encontrada');
         return;
       }
 
@@ -87,7 +87,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`Room join completed for user ${user.email} in room ${room.name}`, 'ChatGateway.handleJoinRoom');
     } catch (error) {
       this.logger.error(`Error joining room: ${error.message}`, error.stack, 'ChatGateway.handleJoinRoom');
-      client.emit('error', 'Failed to join room');
+      client.emit('error', 'Erro ao entrar na sala');
     }
   }
 
@@ -102,7 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (!roomId) {
       this.logger.warn(`User ${user.email} tried to send message without being in a room`, 'ChatGateway.handleMessage');
-      client.emit('error', 'You must join a room first');
+      client.emit('error', 'Você deve entrar em uma sala primeiro');
       return;
     }
 
@@ -130,7 +130,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.debug(`Message emitted to room: ${roomId}`, 'ChatGateway.handleMessage');
     } catch (error) {
       this.logger.error(`Error creating message: ${error.message}`, error.stack, 'ChatGateway.handleMessage');
-      client.emit('error', 'Failed to send message');
+      client.emit('error', 'Erro ao enviar mensagem');
     }
   }
 

@@ -99,6 +99,30 @@ describe('AuthController (e2e)', () => {
           expect(res.body.message).toContain('Nome deve ter pelo menos 2 caracteres');
         });
     });
+
+    it('should fail with duplicate email', async () => {
+      const email = `duplicate-${Date.now()}@example.com`;
+      const registerDto = {
+        name: 'Test User',
+        email: email,
+        password: 'password123',
+      };
+
+      // Primeiro registro
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send(registerDto)
+        .expect(201);
+
+      // Segundo registro com mesmo email
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send(registerDto)
+        .expect(409)
+        .expect((res) => {
+          expect(res.body.message).toBe('Usuário já existe com este email');
+        });
+    });
   });
 
   describe('POST /auth/login', () => {
@@ -146,7 +170,7 @@ describe('AuthController (e2e)', () => {
         .send(loginDto)
         .expect(401)
         .expect((res) => {
-          expect(res.body.message).toBe('User not found');
+          expect(res.body.message).toBe('Usuário não encontrado');
         });
     });
 
@@ -161,7 +185,7 @@ describe('AuthController (e2e)', () => {
         .send(loginDto)
         .expect(401)
         .expect((res) => {
-          expect(res.body.message).toBe('Password is incorrect');
+          expect(res.body.message).toBe('Senha incorreta');
         });
     });
 
