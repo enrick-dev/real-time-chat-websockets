@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && window.location.pathname !== '/') {
       localStorage.removeItem('token');
       window.location.href = '/';
     }
@@ -52,13 +52,33 @@ export interface User {
 
 export const authService = {
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/login', data);
-    return response.data;
+    try {
+      const response = await api.post<LoginResponse>('/auth/login', data);
+      return response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        if (axiosError.response?.data?.message) {
+          throw new Error(axiosError.response.data.message);
+        }
+      }
+      throw error;
+    }
   },
 
   async register(data: RegisterRequest): Promise<User> {
-    const response = await api.post<User>('/auth/register', data);
-    return response.data;
+    try {
+      const response = await api.post<User>('/auth/register', data);
+      return response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        if (axiosError.response?.data?.message) {
+          throw new Error(axiosError.response.data.message);
+        }
+      }
+      throw error;
+    }
   },
 
   async getProfile(): Promise<User> {
