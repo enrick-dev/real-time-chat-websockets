@@ -1,14 +1,6 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
-export interface CreateRoomDto {
-  name: string;
-  maxUsers: number;
-}
+import { CreateRoomDto } from './dto/create-room.dto';
 
 export interface Room {
   id: string;

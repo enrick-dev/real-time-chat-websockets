@@ -8,7 +8,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
-import type { CreateRoomDto } from './room.service';
+import { CreateRoomDto } from './dto/create-room.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('rooms')
