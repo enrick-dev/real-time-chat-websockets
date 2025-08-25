@@ -5,6 +5,7 @@ export interface CreateMessageDto {
   text: string;
   userId: string;
   userName: string;
+  roomId: string;
 }
 
 @Injectable()
@@ -17,12 +18,14 @@ export class ChatService {
         text: createMessageDto.text,
         userId: createMessageDto.userId,
         userName: createMessageDto.userName,
+        roomId: createMessageDto.roomId,
       },
       select: {
         id: true,
         text: true,
         userName: true,
         userId: true,
+        roomId: true,
         createdAt: true,
       },
     });
@@ -30,8 +33,11 @@ export class ChatService {
     return message;
   }
 
-  async getRecentMessages(limit: number = 50) {
+  async getRecentMessages(roomId: string, limit: number = 50) {
     const messages = await this.prisma.message.findMany({
+      where: {
+        roomId: roomId,
+      },
       take: limit,
       orderBy: {
         createdAt: 'desc',
@@ -41,6 +47,7 @@ export class ChatService {
         text: true,
         userName: true,
         userId: true,
+        roomId: true,
         createdAt: true,
       },
     });

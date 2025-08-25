@@ -3,11 +3,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
+import { RoomService } from './room.service';
+import { RoomController } from './room.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
+    PrismaModule,
     AuthModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -19,7 +23,8 @@ import { AuthModule } from '../auth/auth.module';
       }),
     }),
   ],
-  providers: [ChatGateway, ChatService, WsJwtGuard],
-  exports: [ChatService],
+  controllers: [RoomController],
+  providers: [ChatGateway, ChatService, RoomService, WsJwtGuard],
+  exports: [ChatService, RoomService],
 })
 export class ChatModule {}
