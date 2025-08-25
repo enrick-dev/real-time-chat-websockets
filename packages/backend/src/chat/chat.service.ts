@@ -22,6 +22,7 @@ export class ChatService {
         id: true,
         text: true,
         userName: true,
+        userId: true,
         createdAt: true,
       },
     });
@@ -39,6 +40,7 @@ export class ChatService {
         id: true,
         text: true,
         userName: true,
+        userId: true,
         createdAt: true,
       },
     });

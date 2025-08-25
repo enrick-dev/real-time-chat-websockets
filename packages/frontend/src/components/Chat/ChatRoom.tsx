@@ -9,6 +9,7 @@ interface Message {
   id: string;
   text: string;
   userName: string;
+  userId: string;
   createdAt: string;
 }
 
@@ -155,30 +156,34 @@ export const ChatRoom: React.FC = () => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.userName === user?.name ? 'justify-end' : 'justify-start'}`}
-          >
+        {messages.map((message) => {
+          const isOwnMessage = message.userId === user?.id;
+          
+          return (
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                message.userName === user?.name
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-900 border border-gray-200'
-              }`}
+              key={message.id}
+              className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
             >
-              <div className="text-sm font-medium mb-1">
-                {message.userName === user?.name ? 'Você' : message.userName}
-              </div>
-              <div className="text-sm">{message.text}</div>
-              <div className={`text-xs mt-1 ${
-                message.userName === user?.name ? 'text-blue-100' : 'text-gray-500'
-              }`}>
-                {new Date(message.createdAt).toLocaleTimeString()}
+              <div
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  isOwnMessage
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-900 border border-gray-200'
+                }`}
+              >
+                <div className="text-sm font-medium mb-1">
+                  {isOwnMessage ? 'Você' : message.userName}
+                </div>
+                <div className="text-sm">{message.text}</div>
+                <div className={`text-xs mt-1 ${
+                  isOwnMessage ? 'text-blue-100' : 'text-gray-500'
+                }`}>
+                  {new Date(message.createdAt).toLocaleTimeString()}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
