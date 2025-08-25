@@ -10,7 +10,7 @@ export const AuthPage: React.FC = () => {
 
   useEffect(() => {
     if (authService.isAuthenticated()) {
-      navigate('/chat');
+      navigate('/rooms');
     }
   }, [navigate]);
 

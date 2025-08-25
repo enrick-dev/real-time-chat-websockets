@@ -26,7 +26,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       // Após registro bem-sucedido, fazer login automaticamente
       const loginResponse = await authService.login({ email, password });
       localStorage.setItem('token', loginResponse.access_token);
-      navigate('/chat');
+      navigate('/rooms');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao registrar');
     } finally {

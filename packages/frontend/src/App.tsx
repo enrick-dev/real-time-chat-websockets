@@ -1,4 +1,6 @@
 import { ChatRoom } from './components/Chat/ChatRoom';
+import { RoomList } from './components/Room/RoomList';
+import { CreateRoom } from './components/Room/CreateRoom';
 import { AuthPage } from './pages/AuthPage';
 import { authService } from './services/authService';
 import {
@@ -15,14 +17,30 @@ function App() {
         <Routes>
           <Route path="/" element={<AuthPage />} />
           <Route
-            path="/chat"
+            path="/rooms"
+            element={
+              <ProtectedRoute>
+                <RoomList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-room"
+            element={
+              <ProtectedRoute>
+                <CreateRoom />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat/:roomSlug"
             element={
               <ProtectedRoute>
                 <ChatRoom />
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/rooms" replace />} />
         </Routes>
       </Router>
     </div>

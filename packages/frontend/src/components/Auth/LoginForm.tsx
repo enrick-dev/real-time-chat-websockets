@@ -21,7 +21,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     try {
       const response = await authService.login({ email, password });
       localStorage.setItem('token', response.access_token);
-      navigate('/chat');
+      navigate('/rooms');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao fazer login');
     } finally {
