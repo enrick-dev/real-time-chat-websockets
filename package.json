@@ -1,7 +1,7 @@
 {
   "name": "real-time-chat-websockets",
   "version": "1.0.0",
-  "description": "Real-time chat application with WebSocket and JWT authentication",
+  "description": "Chat em tempo real desenvolvido com NestJS e React",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -23,32 +23,33 @@
     "db:up": "docker-compose -f packages/backend/docker-compose.yml up -d",
     "db:down": "docker-compose -f packages/backend/docker-compose.yml down",
     "db:reset": "npm run db:down && npm run db:up && npm run db:migrate",
-    "db:migrate": "npm run prisma:migrate:dev --workspace=packages/backend",
-    "db:generate": "npm run prisma:generate --workspace=packages/backend",
-    "db:studio": "npm run prisma:studio --workspace=packages/backend"
+    "db:migrate": "npm run db:migrate --workspace=packages/backend",
+    "db:generate": "npm run db:generate --workspace=packages/backend",
+    "db:studio": "npm run db:studio --workspace=packages/backend"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "prettier": "^3.1.1"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/real-time-chat-websockets.git"
+    "concurrently": "^8.2.2"
   },
   "keywords": [
+    "chat",
+    "realtime",
+    "websocket",
     "nestjs",
     "react",
-    "websocket",
-    "chat",
-    "jwt",
     "typescript",
-    "monorepo"
+    "postgresql",
+    "prisma",
+    "jwt"
   ],
-  "author": "Your Name",
-  "license": "MIT"
+  "author": "enrick-dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/real-time-chat-websockets.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/real-time-chat-websockets/issues"
+  },
+  "homepage": "https://github.com/seu-usuario/real-time-chat-websockets#readme"
 }
 

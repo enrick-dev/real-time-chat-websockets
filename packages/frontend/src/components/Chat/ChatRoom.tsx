@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import io from 'socket.io-client';
-import type { Socket } from 'socket.io-client';
 import { authService } from '../../services/authService';
 import type { User } from '../../services/authService';
 import { roomService } from '../../services/roomService';
@@ -19,7 +18,7 @@ interface Message {
 export const ChatRoom: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState(null);
   const [user, setUser] = useState<User | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
