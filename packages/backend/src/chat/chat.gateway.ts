@@ -18,7 +18,6 @@ import { ChatService } from './chat.service';
     origin: '*',
   },
 })
-@UseGuards(WsJwtGuard)
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -27,16 +26,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
-
-    const user = client.handshake.auth.user;
-    if (user) {
-      client.data.user = user;
-      this.server.emit('user:joined', {
-        userId: user.id,
-        userName: user.name,
-        message: `${user.name} joined the chat`,
-      });
-    }
   }
 
   handleDisconnect(client: Socket) {
@@ -52,15 +41,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('message:send')
   async handleMessage(
     @MessageBody() data: { text: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const user = client.data.user;
+    const user = client.handshake.auth.user;
     if (!user) {
       return { error: 'User not authenticated' };
     }
+
+    client.data.user = user;
 
     const message = await this.chatService.createMessage({
       text: data.text,
@@ -72,8 +64,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return message;
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('message:list')
   async handleGetMessages(@ConnectedSocket() client: Socket) {
+    const user = client.handshake.auth.user;
+    if (user) {
+      client.data.user = user;
+
+      this.server.emit('user:joined', {
+        userId: user.id,
+        userName: user.name,
+        message: `${user.name} joined the chat`,
+      });
+    }
+
     const messages = await this.chatService.getRecentMessages(50);
     return messages;
   }
